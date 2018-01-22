@@ -92,7 +92,7 @@ def conv_text_to_midi(filename):
 
 	# finalise
 	if note_list.notes == []:
-		print 'No notes in %s' % filename
+		print( 'No notes in %s' % filename )
 		return
 		pdb.set_trace()
 	note = note_list.notes[-1]
@@ -120,5 +120,5 @@ if __name__ == '__main__':
 	for filename in filenames:
 		conv_text_to_midi(result_dir + '/' + filename)
 
-	print 'Texts -> midi done! for %d files' % len(filenames)
+	print( 'Texts -> midi done! for %d files' % len(filenames) )
 

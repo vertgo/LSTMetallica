@@ -33,8 +33,12 @@ def get_model(maxlen, num_chars, num_layers):
 def sample(a, temperature=1.0):
 	# helper function to sample an index from a probability array
 	a = np.log(a) / temperature
-	a = np.exp(a) / np.sum(np.exp(a))
-	return np.argmax(np.random.multinomial(1, a, 1))
+	## this is a fix for: "ValueError: sum(pvals[:-1]) > 1.0"
+	dist = np.exp(a)/np.sum(np.exp(a))
+	choices = range(len(a))
+	return np.random.choice(choices, p=dist)
+	#a = np.exp(a) / np.sum(np.exp(a))
+	#return np.argmax(np.random.multinomial(1, a, 1))
 
 def run(is_character=False, maxlen=None, num_units=None, model_prefix=''):
 
@@ -114,7 +118,7 @@ def run(is_character=False, maxlen=None, num_units=None, model_prefix=''):
 		pass
 
 	# train the model, output generated text after each iteration
-	batch_size = 128
+	batch_size = 512
 	loss_history = []
 	pt_x = [1,29,30,40,100,100,200,300,400]
 	nb_epochs = [np.sum(pt_x[:i+1]) for i in range(len(pt_x))]
@@ -133,7 +137,7 @@ def run(is_character=False, maxlen=None, num_units=None, model_prefix=''):
 		result = model.fit(X, y, batch_size=batch_size, nb_epoch=nb_epoch, callbacks=[checker, early_stop]) 
 		loss_history = loss_history + result.history['loss']
 			
-		print 'Saving model after %d epochs...' % nb_epoch
+		print( 'Saving model after %d epochs...' % nb_epoch )
 		model.save_weights('%smodel_after_%d.hdf'%(result_directory, nb_epoch), overwrite=True)
 
 		for diversity in [0.9, 1.0, 1.2]:
@@ -162,7 +166,12 @@ def run(is_character=False, maxlen=None, num_units=None, model_prefix=''):
 					sys.stdout.write(generated)
 				else:
 					print(' '.join(sentence))
+				try:
+					xrange
+				except NameError:
+					xrange = range
 
+				
 				for i in xrange(num_char_pred):
 					# if generated.endswith('_END_'):
 					# 	break
@@ -200,8 +209,8 @@ def run(is_character=False, maxlen=None, num_units=None, model_prefix=''):
 		
 		np.save('%sloss_%s.npy'%(result_directory, prefix), loss_history)
 
-	print 'Done! You might want to run main_post_process.py to get midi files. '
-	print 'You need python-midi (https://github.com/vishnubob/python-midi) to run it.'
+	print( 'Done! You might want to run main_post_process.py to get midi files. ')
+	print( 'You need python-midi (https://github.com/vishnubob/python-midi) to run it.' )
 
 if __name__=='__main__':
 
