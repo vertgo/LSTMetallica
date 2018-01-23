@@ -15,7 +15,7 @@ def text_to_notes(encoded_drums, note_list=None):
 		note_list = Note_List()
 
 	for word_idx, word in enumerate(encoded_drums):
-		c_tick_here = word_idx*min_ppq
+		c_tick_here = int( word_idx*min_ppq )
 
 		for pitch_idx, pitch in enumerate(allowed_pitch):
 
@@ -27,7 +27,8 @@ def text_to_notes(encoded_drums, note_list=None):
 
 def conv_text_to_midi(filename):
 	if os.path.exists(filename[:-4]+'.mid'):
-		return
+		print( "file already exists" + (filename[:-4]+'.mid') )
+		
 	f = open(filename, 'r')
 	f.readline() # title
 	f.readline() # seed sentence
@@ -44,6 +45,8 @@ def conv_text_to_midi(filename):
 	except:
 		pdb.set_trace()
 
+	print( "encoded drums:" + str( encoded_drums ))
+
 	# prepare output
 	note_list = Note_List()
 	pattern = midi.Pattern()
@@ -59,12 +62,12 @@ def conv_text_to_midi(filename):
 	duration = min_ppq*9/10  # it is easier to set new ticks if duration is shorter than _min_ppq
 
 	note_list = text_to_notes(encoded_drums, note_list=note_list)
-	
+	print( "note_list:"+ str(note_list))
 	max_c_tick = 0 
 	not_yet_offed = [] # set of midi.pitch object 
 	for note_idx, note in enumerate(note_list.notes[:-1]):
 		# add onset
-		tick_here = note.c_tick - max_c_tick
+		tick_here = int( note.c_tick - max_c_tick )
 		pitch_here = pitch_to_midipitch[note.pitch]
 		# if pitch_here in cymbals_pitch: # "Lazy-off" for cymbals 
 		# 	off = midi.NoteOffEvent(tick=0, pitch=pitch_here)
@@ -108,7 +111,10 @@ def conv_text_to_midi(filename):
 	eot = midi.EndOfTrackEvent(tick=1)
 	track.append(eot)
 	# print pattern
+	#try:
 	midi.write_midifile(filename[:-4]+'.mid', pattern)
+	#except:
+	#	print( "failure in writing midi file")
 
 
 if __name__ == '__main__':
