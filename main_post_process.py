@@ -61,10 +61,14 @@ def conv_text_to_midi(filename):
 	velocity = 84
 	duration = min_ppq*9/10  # it is easier to set new ticks if duration is shorter than _min_ppq
 
+	sampleIntroEvents = midi.read_midifile( "sample.mid" )[0][0:10] #read the first 10 events from master of puppets
+
 	note_list = text_to_notes(encoded_drums, note_list=note_list)
 	print( "note_list:"+ str(note_list))
 	max_c_tick = 0 
 	not_yet_offed = [] # set of midi.pitch object 
+	for event in sampleIntroEvents:
+		track.append( event )
 	for note_idx, note in enumerate(note_list.notes[:-1]):
 		# add onset
 		tick_here = int( note.c_tick - max_c_tick )
@@ -73,7 +77,7 @@ def conv_text_to_midi(filename):
 		# 	off = midi.NoteOffEvent(tick=0, pitch=pitch_here)
 		# 	track.append(off)
 		
-		on = midi.NoteOnEvent(tick=tick_here, velocity=velocity, pitch=pitch_here)
+		on = midi.NoteOnEvent(tick=tick_here, velocity=velocity, pitch=pitch_here, channel=9)
 		track.append(on)
 		max_c_tick = max(max_c_tick, note.c_tick)
 		# add offset for something not cymbal
